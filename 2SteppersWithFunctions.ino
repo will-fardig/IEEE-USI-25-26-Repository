@@ -4,8 +4,8 @@
 #define MotorInterfaceType 4
 
 // Right and Left side stepper motors
-AccelStepper RightSide(MotorInterfaceType, 8, 9, 10, 11);
-AccelStepper LeftSide(MotorInterfaceType, 4, 5, 6, 7);
+AccelStepper RightSide(MotorInterfaceType, 8,9,10,11); //Yellow (in1), orange(in2), red(in3), brown(in4) respectively
+AccelStepper LeftSide(MotorInterfaceType, 4,5,6,7);    //Blue (in1), purple(in2), gray(in3), white(in4) respectively 
 
 void setup() {
   RightSide.setMaxSpeed(500);
@@ -13,12 +13,32 @@ void setup() {
 
   RightSide.setAcceleration(1000);
   LeftSide.setAcceleration(1000);
+  
 }
 // 0.0443 inches per step with 2.82 inch wheels
 // 0.06 inches perstep with 3.82 inch wheels
 
+void loop() 
+{
+  int Turn90 = 293;
+  
+  float RegMove1Inch = 1/ 0.0443; // moves one inch forward with rubber wheels
+  float OmniMove1Inch = 1/ 0.06;  // moves one inch forward with omni wheels
+
+  delay(1000);
+  // Forward(5*RegMove1Inch);    // Forward
+  // delay(1000);
+  // Reverse(5*RegMove1Inch);    // Backward
+  // delay(1000);
+  TurnLeft(Turn90);    // Turn left
+  delay(1000);
+  TurnRight(295);   // Turn right
+  delay(1000);
+ }
+
 // Move both motors forward by stepCount
-void Forward(long stepCount) {
+void Forward(int stepCount) 
+{
   RightSide.moveTo(RightSide.currentPosition() + stepCount);
   LeftSide.moveTo(LeftSide.currentPosition() + stepCount);
 
@@ -29,7 +49,8 @@ void Forward(long stepCount) {
 }
 
 // Move both motors backward by stepCount
-void Reverse(long stepCount) {
+void Reverse(int stepCount) 
+{
   RightSide.moveTo(RightSide.currentPosition() - stepCount);
   LeftSide.moveTo(LeftSide.currentPosition() - stepCount);
 
@@ -40,7 +61,8 @@ void Reverse(long stepCount) {
 }
 
 // Turn left (left motor backward, right motor forward)
-void TurnLeft(long stepCount) {
+void TurnLeft(int stepCount) 
+{
   RightSide.moveTo(RightSide.currentPosition() + stepCount);
   LeftSide.moveTo(LeftSide.currentPosition() - stepCount);
 
@@ -51,7 +73,8 @@ void TurnLeft(long stepCount) {
 }
 
 // Turn right (right motor backward, left motor forward)
-void TurnRight(long stepCount) {
+void TurnRight(int stepCount) 
+{
   RightSide.moveTo(RightSide.currentPosition() - stepCount);
   LeftSide.moveTo(LeftSide.currentPosition() + stepCount);
 
@@ -59,15 +82,4 @@ void TurnRight(long stepCount) {
     RightSide.run();
     LeftSide.run();
   }
-}
-
-void loop() {
-  Forward(2000);    // Both sides forward
-  delay(1000);
-  Reverse(2000);    // Both sides backward
-  delay(1000);
-  TurnLeft(2000);    // Turn left
-  delay(1000);
-  TurnRight(2000);   // Turn right
-  delay(1000);
 }
