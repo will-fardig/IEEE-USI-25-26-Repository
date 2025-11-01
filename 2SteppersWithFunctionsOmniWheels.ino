@@ -29,6 +29,21 @@ AccelStepper RearRight(MotorInterfaceType, stepPinRR, dirPinRR);    // Rear righ
 Servo FlagServo;          // Servo that pushes duck flag off robot
     #define FlagServoPin 10 //Define pin for FlagServo as pin 10
 
+
+//Define linear actuator/Solenoid positive and negative pins
+#define Actuator7Pos 31 // Actuator that presses 7 key positive wire
+#define Actuator7Neg 33 // Actuator that presses 7 key negative wire
+
+#define Actuator3Pos 35 // Actuator that presses 7 key positive wire
+#define Actuator3Neg 37 // Actuator that presses 7 key negative wire
+
+#define Actuator8Pos 39 // Actuator that presses 7 key positive wire
+#define Actuator8Neg 41 // Actuator that presses 7 key negative wire
+
+float InchesPerStep = 0.06; // Calibrate this for your wheels
+int StepsPerInch = 16;
+int Turn90 = 293;           // Calibrate for your robot
+
 void setup() // Defines steppers' speed + acceleration and servo pins
 {
     int Speed = 1000;   // Steps per second,  200 steps per rotation
@@ -49,15 +64,11 @@ void setup() // Defines steppers' speed + acceleration and servo pins
 
 void loop() 
 {
-    float InchesPerStep = 0.06; // Calibrate this for your wheels
-    int StepsPerInch = 16;
-    int Turn90 = 293;           // Calibrate for your robot
-
-    // //Knock duck flag off robot
-    // MoveFlagServo(180); //Move Flag servo to 90 degrees
-    // delay(1000);
-    // HomeFlagServo();    //Move Flag servo to 0 degrees
-    // delay(1000);
+    //Knock duck flag off robot
+    MoveFlagServo(180); //Move Flag servo to 90 degrees
+    delay(1000);
+    HomeFlagServo();    //Move Flag servo to 0 degrees
+    delay(1000);
     
     // Move forward
     Forward(12*StepsPerInch);
@@ -67,23 +78,23 @@ void loop()
     Reverse(12*StepsPerInch);
     delay(1000);
 
-    // // Strafe left
-    // StrafeLeft(12*StepsPerInch);
-    // delay(1000);
+    // Strafe left
+    StrafeLeft(12*StepsPerInch);
+    delay(1000);
 
-    // // Strafe right
-    // StrafeRight(12*StepsPerInch);
-    // delay(1000);
+    // Strafe right
+    StrafeRight(12*StepsPerInch);
+    delay(1000);
 
-    // // Rotate left
-    // RotateLeft(Turn90);
-    // delay(1000);
+    // Rotate left
+    RotateLeft(Turn90);
+    delay(1000);
 
-    // // Rotate right
-    // RotateRight(Turn90);
-    // delay(1000);
+    // Rotate right
+    RotateRight(Turn90);
+    delay(1000);
 
-    // HomeAllServos();
+    HomeAllServos();
 }
 
 // Stepper functions
@@ -211,3 +222,42 @@ void HomeAllServos()            // Sets all servos to the 0 degree position
     FlagServo.write(0);
     // Add other servos as needed.
 }
+
+// // Linear actuator/Soleniod for keypad
+// void EnterCombination()
+// {
+//     digitalWrite(Actuator7Pos, HIGH); // Presses the 7 key on the keypad
+//     digitalWrite(Actuator7Neg, LOW);
+//     delay(1000);
+//     digitalWrite(Actuator7Pos, LOW);
+//     digitalWrite(Actuator7Neg, HIGH);
+//     delay(1000);
+
+//     digitalWrite(Actuator3Pos, HIGH); // Presses the 3 key on the keypad
+//     digitalWrite(Actuator3Neg, LOW);
+//     delay(1000);
+//     digitalWrite(Actuator3Pos, LOW);
+//     digitalWrite(Actuator3Neg, HIGH);
+//     delay(1000);
+
+//     digitalWrite(Actuator7Pos, HIGH); // Presses the 7 key on the keypad
+//     digitalWrite(Actuator7Neg, LOW);
+//     delay(1000);
+//     digitalWrite(Actuator7Pos, LOW);
+//     digitalWrite(Actuator7Neg, HIGH);
+//     delay(1000);
+
+//     digitalWrite(Actuator3Pos, HIGH); // Presses the 3 key on the keypad
+//     digitalWrite(Actuator3Neg, LOW);
+//     delay(1000);
+//     digitalWrite(Actuator3Pos, LOW);
+//     digitalWrite(Actuator3Neg, HIGH);
+//     delay(1000);
+
+//     digitalWrite(Actuator8Pos, HIGH); // Presses the 8 key on the keypad
+//     digitalWrite(Actuator8Neg, LOW);
+//     delay(1000);
+//     digitalWrite(Actuator8Pos, LOW);
+//     digitalWrite(Actuator8Neg, HIGH);
+//     delay(1000);
+// }
