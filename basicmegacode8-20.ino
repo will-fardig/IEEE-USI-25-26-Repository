@@ -8,11 +8,11 @@ AccelStepper RightSide(MotorInterfaceType, 8,9,10,11); //Yellow (in1), orange(in
 AccelStepper LeftSide(MotorInterfaceType, 7,6,5,4);    //Blue (in1), purple(in2), gray(in3), white(in4) respectively 
 
 void setup() {
-  RightSide.setMaxSpeed(250);
+  RightSide.setMaxSpeed(300);
   LeftSide.setMaxSpeed(300);
 
-  RightSide.setAcceleration(1000);
-  LeftSide.setAcceleration(1000);
+  RightSide.setAcceleration(200);
+  LeftSide.setAcceleration(200);
   
   // Serial.begin(9600);
 }
@@ -27,8 +27,8 @@ void loop()
   float OmniMove1Inch = 1/ 0.06;  // moves one inch forward with omni wheels
 
   delay(1000);
-  // Serial.println("Now to move 28 in forward");
-  Forward(28*OmniMove1Inch);
+  // Serial.println("Now to move 27 in forward");
+  Forward(27*OmniMove1Inch);
   delay(1000);
   // Serial.println("Now to move 18 in backward");
   Reverse(18*OmniMove1Inch);
