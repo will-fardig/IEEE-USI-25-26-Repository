@@ -21,9 +21,9 @@ Servo FlagServo;
 #define SolenoidP 5 // presses # key
 
 // Movement and distance defs
-float inchesPerStep = 0.06; // Inches per step with 3.8 inch wheels; unused at present
-int stepsPerInch = 16;
-int turn90 = 293;
+const float inchesPerStep = 0.06; // Inches per step with 3.8 inch wheels; unused at present
+const int stepsPerInch = 16;
+const int turn90 = 293;
 
 void setup()
 {
@@ -51,24 +51,16 @@ void loop()
     // delay(1000);
     // HomeFlagServo();
     // delay(1000);
-    
-    // Forward(12);
-    // delay(1000);
 
-    // Reverse(12);
-    // delay(1000);
-
-    // StrafeLeft(12);
-    // delay(1000);
-
-    // StrafeRight(12);
-    // delay(1000);
-
-    RotateLeft(turn90);
+    Forward(28);
+    delay(1000);
+    TripleButtonWombo();
+    delay(1000);
+    Reverse(18);
     delay(1000);
 
-    RotateRight(turn90);
-    delay(1000);
+    StrafeRight(10);
+    delay(2000);
 
     // HomeAllServos();
 }
@@ -124,11 +116,12 @@ void StrafeLeft(int inches)
 
 void StrafeRight(int inches)
 {
-    FrontRight.move(-inches*stepsPerInch);
-    RearRight.move(-inches*stepsPerInch);
+    float strafeAdjust = (stepsPerInch * (10/9));
+    FrontRight.move(-inches*strafeAdjust);
+    RearRight.move(-inches*strafeAdjust);
 
-    FrontLeft.move(inches*stepsPerInch);
-    RearLeft.move(inches*stepsPerInch);
+    FrontLeft.move(inches*strafeAdjust);
+    RearLeft.move(inches*strafeAdjust);
 
     while (FrontRight.distanceToGo() != 0 || FrontLeft.distanceToGo() != 0 || RearLeft.distanceToGo() != 0 || RearRight.distanceToGo() != 0) {
         FrontRight.run();
@@ -166,23 +159,26 @@ void RotateRight(int degrees) //Function to rotate right
     }
 }
 
-// SERVO FUNCTIONS
-void MoveFlagServo(int degrees) // Moves servo n degrees
+// SPECIFIC FUNCTIONS
+
+void TripleButtonWombo() // Antenna One
 {
-    FlagServo.write(degrees);
+    Forward(1);
+    delay(500);
+    Reverse(1);
+    delay(500);
+
+    Forward(1);
+    delay(500);
+    Reverse(1);
+    delay(500);
+
+    Forward(1);
+    delay(500);
+    Reverse(1); // should land us where we started...
+    delay(500);
 }
 
-void HomeFlagServo() // Brings flag servo on home (zero the grease)
-{
-    FlagServo.write(0);
-}
-
-void HomeAllServos() // Brings all servos on home (zero the grease); add others here
-{
-    FlagServo.write(0);
-}
-
-// SOLENOID FUNCTIONS
 void EnterCombination()
 {
     digitalWrite(Solenoid7, HIGH); // Presses the 7 key on the keypad
@@ -214,4 +210,20 @@ void EnterCombination()
     delay(1000);
     digitalWrite(SolenoidP, LOW);
     delay(1000);
+}
+
+// SERVO FUNCTIONS
+void MoveFlagServo(int degrees) // Moves servo n degrees
+{
+    FlagServo.write(degrees);
+}
+
+void HomeFlagServo() // Brings flag servo on home (zero the grease)
+{
+    FlagServo.write(0);
+}
+
+void HomeAllServos() // Brings all servos on home (zero the grease); add others here
+{
+    FlagServo.write(0);
 }
