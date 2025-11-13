@@ -1,5 +1,6 @@
 #include <AccelStepper.h>
 #include <Servo.h>
+#include <Adafruit_MCP23X17.h>
 
 // Use AccelStepper in DRIVER mode (L298N)
 #define MotorInterfaceType 4
@@ -19,6 +20,7 @@ Servo FlagServo;
 #define Solenoid3 3 // presses 3 key
 #define Solenoid8 4 // presses 8 key
 #define SolenoidP 5 // presses # key
+Adafruit_MCP23X17 mcp;
 
 // Movement and distance defs
 const float inchesPerStep = 0.06; // Inches per step with 3.8 inch wheels; unused at present
@@ -44,6 +46,19 @@ void setup()
     RearLeft.setAcceleration(accel);
 
     FlagServo.attach(FlagServoPin); // Orange wire on servo
+
+    mcp.begin_I2C();
+    // Set pins as outputs
+    mcp.pinMode(Solenoid7, OUTPUT);
+    mcp.pinMode(Solenoid3, OUTPUT);
+    mcp.pinMode(Solenoid8, OUTPUT);
+    mcp.pinMode(SolenoidP, OUTPUT);
+
+    // Initially off (LOW)
+    mcp.digitalWrite(Solenoid7, LOW);
+    mcp.digitalWrite(Solenoid3, LOW);
+    mcp.digitalWrite(Solenoid8, LOW);
+    mcp.digitalWrite(SolenoidP, LOW);
 }
 
 void loop() 
@@ -62,6 +77,8 @@ void loop()
 
     StrafeRight(24);
     delay(2000);
+
+    // enterCombination();
 
     // HomeAllServos();
 }
@@ -187,37 +204,43 @@ void TripleButtonWombo() // Antenna One
     delay(500);
 }
 
-void EnterCombination() // Solenoid actions to enter 73738#
+void enterCombination() 
 {
-    digitalWrite(Solenoid7, HIGH); // Presses the 7 key on the keypad
-    delay(1000);
-    digitalWrite(Solenoid7, LOW);
-    delay(1000);
+    // Fire 7
+    mcp.digitalWrite(Solenoid7, HIGH);
+    delay(250);
+    mcp.digitalWrite(Solenoid7, LOW);
+    delay(250);
 
-    digitalWrite(Solenoid3, HIGH); // Presses the 3 key on the keypad
-    delay(1000);
-    digitalWrite(Solenoid3, LOW);
-    delay(1000);
+    // Fire 3
+    mcp.digitalWrite(Solenoid3, HIGH);
+    delay(250);
+    mcp.digitalWrite(Solenoid3, LOW);
+    delay(250);
 
-    digitalWrite(Solenoid7, HIGH); // Presses the 7 key on the keypad
-    delay(1000);
-    digitalWrite(Solenoid7, LOW);
-    delay(1000);
+    // Fire 7
+    mcp.digitalWrite(Solenoid7, HIGH);
+    delay(250);
+    mcp.digitalWrite(Solenoid7, LOW);
+    delay(250);
 
-    digitalWrite(Solenoid3, HIGH); // Presses the 3 key on the keypad
-    delay(1000);
-    digitalWrite(Solenoid3, LOW);
-    delay(1000);
+    // Fire 3
+    mcp.digitalWrite(Solenoid3, HIGH);
+    delay(250);
+    mcp.digitalWrite(Solenoid3, LOW);
+    delay(250);
 
-    digitalWrite(Solenoid8, HIGH); // Presses the 8 key on the keypad
-    delay(1000);
-    digitalWrite(Solenoid8, LOW);
-    delay(1000);
 
-    digitalWrite(SolenoidP, HIGH); // Presses the # key on the keypad
-    delay(1000);
-    digitalWrite(SolenoidP, LOW);
-    delay(1000);
+    // Fire 8
+    mcp.digitalWrite(Solenoid8, HIGH);
+    delay(250);
+    mcp.digitalWrite(Solenoid8, LOW);
+    delay(250);
+
+    // Fire #
+    mcp.digitalWrite(SolenoidP, HIGH);
+    delay(250);
+    mcp.digitalWrite(SolenoidP, LOW);
 }
 
 // SERVO FUNCTIONS
