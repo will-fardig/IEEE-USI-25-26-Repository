@@ -11,6 +11,8 @@ AccelStepper RearRight(MotorInterfaceType, 40,42,44,46); // Yellow (in1), orange
 AccelStepper FrontLeft(MotorInterfaceType, 31,33,35,37); // White (in1), grey(in2), purple(in3), blue(in4) respectively 
 AccelStepper RearLeft(MotorInterfaceType, 30,32,34,36); // White (in1), grey(in2), purple(in3), blue(in4) respectively 
 
+AccelStepper CrankStepper(MotorInterfaceType, 22,23,24,25); // (in1), (in2), (in3), (in4) respectively
+
 // Servo wiring: Orange/White--PWM, Red--5V, Brown/Black--GND
 Servo FlagServo;
 #define FlagServoPin 10
@@ -78,7 +80,9 @@ void loop()
     StrafeRight(24);
     delay(2000);
 
-    // enterCombination();
+    // EnterCombination();
+
+    // TurnCrank();
 
     // HomeAllServos();
 }
@@ -204,7 +208,7 @@ void TripleButtonWombo() // Antenna One
     delay(500);
 }
 
-void enterCombination() 
+void EnterCombination() 
 {
     // Fire 7
     mcp.digitalWrite(Solenoid7, HIGH);
@@ -241,6 +245,16 @@ void enterCombination()
     mcp.digitalWrite(SolenoidP, HIGH);
     delay(250);
     mcp.digitalWrite(SolenoidP, LOW);
+}
+
+void TurnCrank()
+{
+    CrankStepper.move(400);
+
+    while (CrankStepper.distanceToGo() != 0) 
+    {
+        CrankStepper.run();
+    }
 }
 
 // SERVO FUNCTIONS
