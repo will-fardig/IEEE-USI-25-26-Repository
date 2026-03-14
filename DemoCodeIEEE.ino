@@ -1,6 +1,10 @@
 #include <AccelStepper.h>
 #include <Servo.h>
 #include <Adafruit_MCP23X17.h>
+#include <stdlib.h>
+
+#include <Arduino.h>
+#include <IRremote.hpp>
 
 ///////////////////////////////////////////////////////////////
 // MOTOR INTERFACE AND ACCELSTEPPER
@@ -22,19 +26,23 @@ AccelStepper CrankStepper(MotorInterfaceType, 22,23,24,25);
 #define ToPi 27  // Signals sent from the Arduino to the Pi
 
 ///////////////////////////////////////////////////////////////
-// FLAG SERVO AND SOLENOIDS
+// FLAG SERVO, ARM SERVO, AND SOLENOIDS AND THE HEX ONE
 ///////////////////////////////////////////////////////////////
 
 Servo FlagServo; // Orange/White: PWM, Red: 5V, and Brown/Black: GND
+Servo ArmServo;
+// Servo HexServo;
 #define FlagServoPin 10
+#define ArmServoPin 9
+// #define HexServoPin 8
 #define Solenoid7 0 // presses 7 key
 #define Solenoid3 1 // presses 3 key
-#define Solenoid8 2 // presses 8 key
-#define SolenoidP 3 // presses # key
+#define Solenoid8 3 // presses 8 key
+#define SolenoidP 2 // presses # key
 Adafruit_MCP23X17 mcp;
 
 ///////////////////////////////////////////////////////////////
-// PHOTORESISTOR
+// PHOTORESISTOR AND TRANSMITTER AND UH LEDs
 ///////////////////////////////////////////////////////////////
 
 #define PHOTORESISTOR_PIN A0
@@ -42,6 +50,11 @@ Adafruit_MCP23X17 mcp;
 const int LIGHT_THRESHOLD = 50;
 int currentLight = 0;
 int previousLight = 0;
+const int CALIBRATED_LIGHT = 0;
+
+#define SENDER_PIN 11
+
+#define LEDBOARD_PIN 12
 
 ///////////////////////////////////////////////////////////////
 // MOVEMENT AND POSITIONING CONSTANTS
@@ -91,54 +104,36 @@ void setup()
     mcp.digitalWrite(Solenoid8, LOW);
     mcp.digitalWrite(SolenoidP, LOW);
 
-    FlagServo.attach(FlagServoPin); // Orange wire on servo
-
     // Photoresistor Init
     Serial.begin(9600);
     pinMode(PHOTORESISTOR_PIN, INPUT_PULLUP);
     previousLight = analogRead(PHOTORESISTOR_PIN);
 
-    // Presently unused pins for communicating with the Raspberry Pi
+    // Presently used pins for communicating with the Raspberry Pi
     pinMode(26, INPUT);
     pinMode(27, OUTPUT);
+
+    // Sets up the IR Sender object
+    Serial.begin(115200);
+    IrSender.begin(SENDER_PIN);
+
+    // LED Board Init
+    pinMode(LEDBOARD_PIN, OUTPUT);
 }
 
 void loop() 
 {
-    HomeFlagServo();
-    // PhotoresistStart(); // Auto-starts using a white LED start bar: 15 points
+    PhotoresistStart(); // Auto-starts using a white LED start bar: 15 points
 
-    // KeypadButtonFunc(); // Keypad movement, line up on wall, button function, rehome.
+    KeypadButtonFunc(); // Keypad movement, line up on wall, button function, rehome.
 
-    // DuckAtKeypad(); // Strafe right, turn and push keypadducky, rerotating, hitting the wall, and rehoming.
+    DuckAtKeypad(); // Strafe right, turn and push keypadducky, rerotating, hitting the wall, and rehoming.
 
-    // FuckSweeper(); // Move to go counterclockwise around the crater. Rotating to catch ducks in 30 degree increments, pushing them in to endzone.
-    // ^ also diagstrafing past the bluezone to rehome.
+    FuckSweeper(); // Move to go counterclockwise around the crater. Rotating to catch ducks in 30 degree increments, pushing them in to endzone.
 
-    // StupidChudDuck(); // catches the duck sitting by the button antenna, and squares up all other ducks in endzone, then rehome.
+    StupidChudDuck(); // catches the duck sitting by the button antenna, and squares up all other ducks in endzone, then rehome.
 
-    PiFunctionality(); // Drone runs and does it stupid chud robot stuff and then lands, and we rehome.
-
-    //////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////
-    //
-    // RECEIPT FOR ALL THE COOL STUFF WE DID:
-    // Robot leaves the starting area....................................10 points
-    // Robot plants flag outside starting area...........................10 points
-    // Antenna turned on (x2).....................................15*2 = 30 points
-    // Ends the round in the starting area...............................15 points
-    // Launch of the UAV (including 15 inch movement V/H)................30 points
-    // Retrieval of the UAV on the robot.................................50 points
-    // Robot autostarts using a white LED bar............................15 points
-    // Five duckies acquired.......................................5*5 = 25 points
-    // Will's awesome t-shirt being entered in the student design comp...15 points
-    //
-    // TOTAL INTENDED EARNED POINTS.....................................200 points
-    // POSSIBLE COMPETITION POINTS......................................370 points
-    // POSSIBLE POINTS W/ EXTRA NONSENSE................................430 points
-    //
-    //////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////
+    // PiFunctionality(); // Drone runs and does it stupid chud robot stuff and then lands, and we rehome.
 }
 
 ///////////////////////////////////////////////////////////////
@@ -287,7 +282,6 @@ void RotateRight(float degreeds) {
 }
 
 void TripleButtonWombo() { // The delays are an unfortunate part of life here
-    Forward(1.5);
     Backward(1.25);
 
     Forward(1.5);
@@ -301,8 +295,12 @@ void TripleButtonWombo() { // The delays are an unfortunate part of life here
 }
 
 void KeypadAlignPress() {
-    // Square Up
-    Backward(1);
+    Backward(2);
+    // Preliminary pounding
+    mcp.digitalWrite(SolenoidP, HIGH);
+    delay(250);
+    mcp.digitalWrite(SolenoidP, LOW);
+    delay(250);
 
     // Fire 7
     mcp.digitalWrite(Solenoid7, HIGH);
@@ -343,23 +341,23 @@ void KeypadAlignPress() {
     delay(stdDelay);
 }
 
-void CrankHog() { // not used anymore
-    CrankStepper.move(400); // Degrees I think
-
-    while (CrankStepper.distanceToGo() != 0) {
-        CrankStepper.run();
-    }
-
-    delay(stdDelay);
-}
-
-void MoveFlagServo(float degrees) {
-    FlagServo.write(degrees);
+void MoveFlagServo() {
+    FlagServo.write(0);
     delay(stdDelay);
 }
 
 void HomeFlagServo() {
     FlagServo.write(180);
+    delay(stdDelay);
+}
+
+void MoveArmServo() {
+    ArmServo.write(80);
+    delay(stdDelay);
+}
+
+void HomeArmServo() {
+    ArmServo.write(180);
     delay(stdDelay);
 }
 
@@ -370,17 +368,17 @@ void PhotoresistStart() { // 15 points
     Serial.print("-----------------------------");
     Serial.print("Previous Light: ");
     Serial.println(previousLight);
-    while (Bounds == 0 && i <= 10) { 
+    while (Bounds == 0 && i <= 40) {
         currentLight = analogRead(PHOTORESISTOR_PIN);
         Serial.print("Current Light: ");
         Serial.println(currentLight);
-        int lightChange = currentLight - previousLight;
+        int lightChange = currentLight - previousLight; // could say
         if (lightChange >= LIGHT_THRESHOLD) {
             Bounds = 1; // ash baby
             Serial.print("WE BROKE OUT BITCH!!!");
             return;
         }
-        delay(1000);
+        delay(250);
         i = i + 1;
     }
 }
@@ -391,37 +389,57 @@ void PhotoresistStart() { // 15 points
 
 void DuckAtKeypad() { // 5 points
     // Move the keypad duck over to the blue zone and shove him in there
-    StrafeRight(8);
+    StrafeRight(10); // 8
     Forward(1.5);
     RotateLeft(30);
-    StrafeRight(5);
+    StrafeRight(8);
     RotateLeft(15);
-    StrafeRight(12);
-    RotateRight(45);
-    StrafeLeft(22);
-    Backward(3);
-    StrafeRight(24);
-    Forward(12);
+    StrafeRight(10); //new
+    RotateLeft(45); //new
+    StrafeRight(8); //new
+
+    IRTransmitter();
+
+    delay(10000);
+
+    StrafeLeft(8); //new
+    RotateRight(90);
     StrafeLeft(24);
-    Backward(16);
+    Backward(17.5);
 }
 
 void KeypadButtonFunc() { // 50 points
-    // MOVE TO KEYPAD FIRST
-    Forward(16); // Robot leaves starting area: 10 points
-    StrafeRight(23.375); // Line up horiz w/ keypad
-    Backward(7.5);
-    KeypadAlignPress(); // Keypad nonsense: 15 points
-    Forward(10); // Gets us away from the keypad
-    
     // MOVE TO BUTTON
-    StrafeLeft(24);
-    Forward(11.5); // look at
+    Forward(16);
+    StrafeRight(16);
+    RotateRight(180);
+    StrafeLeft(16);
+
+    FlagServo.attach(FlagServoPin); // Orange wire on servo
+
+    MoveFlagServo(); // Plant flag outside starting area: 10 points
+    HomeFlagServo();
+
+    delay(10000);
+
+    StrafeRight(16);
+    RotateRight(180);
+    StrafeLeft(18);
+
+    ArmServo.attach(ArmServoPin);
+
+    MoveArmServo();
+    Forward(14);
+
+    // Forward(29.5); // 11
     TripleButtonWombo(); // Nails the button three times: 15 points (antenna one of four)
 
     // WE ARE REHOMING AT THE GREE (SHORT FOR GREEN)
     StrafeLeft(2);
     Backward(28);
+    HomeArmServo();
+    delay(1000);
+
 }
 
 void PiFunctionality() { // 80 points
@@ -449,29 +467,61 @@ void PiFunctionality() { // 80 points
 void FuckSweeper() { // 15 points
     // we are moving all ducks on da far half into the blue here ideally
     // once ve are at ze endzone, we drop the flag
-    MoveFlagServo(90); // Plant flag outside starting area: 10 points
-    HomeFlagServo();
+    Forward(16);
+    StrafeRight(28.5);
+    RotateRight(60);
+    StrafeRight(10);
+    Forward(2.5);
+    MoveArmServo();
+    delay(1000);
+    HomeArmServo();
+    Backward(1.75);
+    RotateLeft(60);
+    Backward(10);
+    // now i am just doing guesswork
+    HomeArmServo();
+    StrafeRight(32); // facing keypad wall
+    StrafeLeft(3);
+    RotateLeft(90);
+    StrafeLeft(4); // lined with DtapIn
+    StrafeRight(12);
+
+    delay(10000);
+
+    RotateLeft(90);
+    Backward(24);
+    StrafeRight(33);
+    StrafeLeft(1);
+    Forward(13);
+
+    StrafeRight(14);
+    RotateRight(180);
+    StrafeLeft(12);
+    Backward(14);
+    delay(10000);
 }
 
 void StupidChudDuck() { // 20 points
     // this is the one where we square them up again and bring in the lonely chud duck by the button
+    Forward(24);
+    StrafeRight(2);
+    RotateLeft(45);
+    StrafeRight(12);
+    RotateRight(45);
+    StrafeRight(8); // lowkey just do it
+    StrafeLeft(2);
 
+    delay(10000);
+    
+    Backward(14);
+    StrafeLeft(18);
+    Backward(20);
     // ending in starting area: 15 points
 }
 
-void AllAroundDeprecated() {
-    // this can be used for fuck sweeper
-    // starts when 10 away from the keypad
-    DiagStrafeRearRight(29); // Strafes past the crater with very little clearance
-    StrafeRight(34); // Ideally lines us square with the wall, may have some excess movement
-    Forward(26); // Reaches the crank antenna, putting us exactly in position
-    Backward(10); // Takes us away from the crank
-
-    // REHOMING AND STUFF
-    DiagStrafeFrontLeft(29); // Strafes past the crater and lines directly in with the wall
-    StrafeLeft(42); // Takes us all the way back to the area with the first two antennas
-    Backward(24); // Pulls back to middle of the area (make sure we don't run into the flag)
-    StrafeLeft(22); // Lines us up with the wall, may have some excess movement
-    Backward(14); // Brings us right into the green, ending round in starting area (green means good): 15 points
-    delay(3000); // Some kind of aura farming while we all twist and shout or whatever
+void IRTransmitter() {
+    Serial.println("Sending IR signal bitch");
+    IrSender.sendNEC(0xBB, 0x5C, 5); // better than our chances of becoming a billionaire off of blackjack
+    delay(3000);
+    digitalWrite(LEDBOARD_PIN, HIGH);
 }
